@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Discipline Map</title>
+        <link rel="stylesheet" type="text/css" href="dependencies/chosen.css" media="screen" />
+        <style>
+            body {
+                margin: 0px;
+                padding: 0px;
+                height: 100%;
+                user-select: none;
+                overflow:hidden;
+            }
+
+            #lore {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+            }
+
+            #article_info {
+                display: none;
+                position: absolute;
+                pointer-events: none;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                font-size: 12;
+                width: 400px;
+                height: 150px;
+                color: #000;
+                font-family: Arial, Helvetica, sans-serif;
+                text-align: right;
+            }
+
+            #controls {
+                z-index: 10002;
+                position: absolute;
+                top: 5px;
+                left: 5px;
+                right: 5px;
+                padding: 10px;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 0.75em;
+            }
+
+            #topicSelect {
+                background-color: rgba(240, 239, 238, 0.555);
+                border-color: darkgray;
+                border-style:solid;
+                border-width: 1px;
+                border-radius: 5px;
+                padding: 5px;
+                text-align: left;
+                z-index: 10002,
+                float: right;
+                position: absolute;
+                top: 10px;
+                right: 10px;
+            }
+
+            #topicList {
+                width: 400px;
+                font-family: Arial, Helvetica, sans-serif;
+                overflow-x:auto;
+                overflow-y:auto;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div id="controls">
+            <div id="topicSelect">
+                <p>Filter by topic</p>
+                <select id="topicList" data-placeholder="Search for topics..." onchange="processTopicSelect()" class="chosen-select">
+                    <option></option>
+                </select>
+            </div>
+        </div>
+        <div id="article_info"></div>
+        <canvas id="lore"></canvas>
+        <script src="dependencies/lore.min.js"></script>
+        <script src="dependencies/pako.min.js"></script>
+        <script src="dependencies/jquery-3.6.0.min.js"></script>
+        <script src="dependencies/chosen.jquery.min.js"></script>
+        <script src="index.js"></script>
+    </body>
+
+</html> 

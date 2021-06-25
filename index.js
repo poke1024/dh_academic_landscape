@@ -393,7 +393,7 @@ function draw() {
                         minDistIdx = idx;
                     }
                 }
-                if (minDistIdx && minDist < 50) {
+                if (minDistIdx && minDist < 100) {
                     nearest_neighbors = getNearestNeighbors(minDistIdx);
                     selected_article = minDistIdx;
                     displayArticleInfo();

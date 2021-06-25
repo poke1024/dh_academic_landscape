@@ -71,7 +71,7 @@ function initTopicList() {
 }
 
 function processTopicSelect() {
-    currentlySelectedTopic = document.getElementById("topicList").value;
+    currentlySelectedTopic = parseInt(document.getElementById("topicList").value);
     filterByTopic();
     document.getElementById('article_info').style.display = "none";
 }
@@ -118,31 +118,38 @@ var adjacencyMatrixFiltered = {};
 
 var positions = [];
 
-document.getElementById('topicList').ondblclick = function(){
-    currentlySelectedTopic = this.value;
-    filterByTopic();
-};
-
 function filterByTopic() {
     filtered_articles = [];
     console.log(currentlySelectedTopic);
+    console.log(currentlySelectedTopic === -1);
+    if (currentlySelectedTopic === -1) {
+        updateColors();
+        return;
+    }
     relevant_docs = topic_data[currentlySelectedTopic]["docs"];
     for (var i = 0; i <= doi.length; i += 1) {
         if (doi[i] in relevant_docs) {
             filtered_articles.push(i);
         }
     }
-    update_colors();
+    updateColors();
 }
 
-function update_colors() {
+function updateColors() {
     colors_r = [];
     colors_g = [];
     colors_b = [];
     var sizes = [];
     z_positions = [];
     for (var i = 0; i < doi.length; i += 1) {
-        if (!filtered_articles.includes(i)) {
+        if (filtered_articles.length === 0) {
+            var color = discipline_colors[disciplines[i]];
+            colors_r.push(color[0]);
+            colors_g.push(color[1]);
+            colors_b.push(color[2]);
+            sizes.push(1);
+            z_positions.push(0);
+        } else if (!filtered_articles.includes(i)) {
             var color = discipline_colors_unselected[disciplines[i]];
             colors_r.push(color[0]);
             colors_g.push(color[1]);

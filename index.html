@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <title>Discipline Map</title>
-        <link rel="stylesheet" type="text/css" href="dependencies/chosen.css" media="screen" />
+        <link rel="stylesheet" type="text/css" href="chosen.css" media="screen" />
         <style>
             body {
                 margin: 0px;
@@ -75,15 +75,16 @@
                 <p>Filter by topic</p>
                 <select id="topicList" data-placeholder="Search for topics..." onchange="processTopicSelect()" class="chosen-select">
                     <option></option>
+                    <option value="-1">No filter</option>
                 </select>
             </div>
         </div>
         <div id="article_info"></div>
         <canvas id="lore"></canvas>
-        <script src="dependencies/lore.js"></script>
-        <script src="dependencies/pako.min.js"></script>
-        <script src="dependencies/jquery-3.6.0.min.js"></script>
-        <script src="dependencies/chosen.jquery.min.js"></script>
+        <script src="lore.js"></script>
+        <script src="pako.min.js"></script>
+        <script src="jquery-3.6.0.min.js"></script>
+        <script src="chosen.jquery.min.js"></script>
         <script src="index.js"></script>
     </body>
 

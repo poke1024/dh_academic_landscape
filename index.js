@@ -73,7 +73,7 @@ function initTopicList() {
 function processTopicSelect() {
     currentlySelectedTopic = parseInt(document.getElementById("topicList").value);
     filterByTopic();
-    document.getElementById('article_info').style.display = "none";
+    document.getElementById('articleInfo').style.display = "none";
 }
 
 var discipline_colors = {'digital_humanities': '#5267a1',
@@ -363,13 +363,13 @@ function draw() {
 
     function displayArticleInfo() {
         var screenPosition = octreeHelper.getScreenPosition(selected_article);
-        let article_info = document.getElementById('article_info');
-        article_info.style.left = screenPosition[0] + "px";
-        article_info.style.top = screenPosition[1] + "px";
+        let articleInfo = document.getElementById('articleInfo');
+        articleInfo.style.left = screenPosition[0] + "px";
+        articleInfo.style.top = screenPosition[1] + "px";
         let bgColor = discipline_colors_unselected[doc_data[doi[selected_article]]["discipline"]];
-        article_info.style.backgroundColor = "rgba(" + bgColor[0] + ", " + bgColor[1] + ", " + bgColor[2] + ", 0.8)";
-        article_info.innerHTML = selected_article + " " + doc_data[doi[selected_article]]["title"] + "";
-        article_info.style.display = "block";
+        articleInfo.style.backgroundColor = "rgba(" + bgColor[0] + ", " + bgColor[1] + ", " + bgColor[2] + ", 0.8)";
+        articleInfo.innerHTML = selected_article + " " + doc_data[doi[selected_article]]["title"] + "";
+        articleInfo.style.display = "block";
         getAdjacencyMatrixFiltered();
     }
 
@@ -398,11 +398,11 @@ function draw() {
                     selected_article = minDistIdx;
                     displayArticleInfo();
                 } else {
-                    document.getElementById("article_info").style.display = "none";
+                    document.getElementById("articleInfo").style.display = "none";
                 }
             }
         } else {
-            document.getElementById("article_info").style.display = "none";
+            document.getElementById("articleInfo").style.display = "none";
         }
     });
 

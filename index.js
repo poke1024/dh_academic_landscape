@@ -55,6 +55,7 @@ function processTopicSelect() {
     currentlySelectedTopic = parseInt(document.getElementById("topicList").value);
     filterByTopic();
     document.getElementById('articleInfo').style.display = "none";
+    hardSelect = false;
 }
 
 
@@ -236,7 +237,7 @@ function draw() {
         } else {
             mouseOverArticle = false;
         }
-        if (e.e && !hardSelect) {
+        if (e.e && (!hardSelect || !selectedArticle)) {
             initMode = false;
             selectedBySearch = false;
             if (filteredArticles.length === 0 || filteredArticles.includes(e.e.index))  {
@@ -279,6 +280,8 @@ function draw() {
         let articleInfoBox = document.getElementById("articleInfo");
         if (document.getElementById("articleInfo").style.display != "none") {
             hardSelect = true;
+            lore.controls.setLookAt(pointHelper.getPosition(selectedArticle));
+            displayArticleInfo();
             articleInfoBox.style.pointerEvents = 'auto';
         } 
     });

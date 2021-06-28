@@ -17,18 +17,18 @@
                 position: absolute;
                 width: 100%;
                 height: 100%;
+                z-index: -1000;
             }
 
             #articleInfo {
                 display: none;
                 position: absolute;
-                pointer-events: none;
-                z-index: 1000;
+                z-index: 10002,
                 left: 0;
                 top: 0;
-                font-size: 12;
-                width: 400px;
-                height: 150px;
+                font-size: 0.8em;
+                width: 500px;
+                height: auto;
                 color: #000;
                 font-family: Arial, Helvetica, sans-serif;
                 text-align: right;
@@ -60,26 +60,227 @@
                 right: 10px;
             }
 
+            #articleSearch {
+                width: 400px;
+                background-color: rgba(240, 239, 238, 0.555);
+                border-color: darkgray;
+                border-style:solid;
+                border-width: 1px;
+                border-radius: 5px;
+                padding: 5px;
+                text-align: left;
+                z-index: 10002,
+                float: right;
+                position: absolute;
+                top: 100px;
+                right: 10px;
+            }
+
             #topicList {
                 width: 400px;
+                height: 21px;
                 font-family: Arial, Helvetica, sans-serif;
                 overflow-x:auto;
                 overflow-y:auto;
+            }
+
+            #articleSearchBox {
+                box-sizing: border-box;
+                width: 100%;
+                height: auto;
+                border-width: 1px;
+                border-radius: 3px;
+                border: 1px solid #aaa;
+                padding: 4px 20px 4px 5px;
+                margin: 1px 0;
+                font-family: Arial, Helvetica, sans-serif;
+                overflow-x:auto;
+                overflow-y:auto;
+            }
+
+            input:focus { 
+                    outline: none !important;
+            }
+
+            #articleList {
+                width: 396px;
+                max-height: 196px;
+                border-width: 1;
+                padding: 0;
+                font-family: Arial, Helvetica, sans-serif;
+                overflow-x:hidden;
+                overflow-y:auto;
+            }
+
+            #articleList button {
+                width: 100%;
+                outline: none;
+                padding: 10px 20px; 
+                cursor: pointer;
+                border: none;
+                display: block;
+                border-color:  rgba(255, 255, 255, 0);
+                border-style:solid;
+                border-width: 1px;
+                border-radius: 5px;
+                text-align: left;
+                max-height: 100px;
+                text-overflow: ellipsis;
+                overflow: hidden; 
+            }
+
+            #articleList button:hover {
+                border-color: darkgray;
+            }
+
+            #topicBarChart {
+                width: 100%;
+                height: 200px;
+                position: relative;
+            }
+
+            .topicBar {
+                position: absolute;
+                height: 18px;
+                background-color: rgba(144, 132, 128, 0.5);
+                right: 0px;
+                margin-left: auto; 
+                margin-right: 0;
+                text-align: right;
+                font-size: 0.8em;
+                white-space: nowrap;
+                direction: rtl;
+                padding: 4px 4px 4px 4px;
+                box-sizing: border-box;
+            }
+
+            .topicBarText {
+                position: absolute;
+                height: 18px;
+                margin-left: 0; 
+                max-width: 80%;
+                font-size: 0.8em;
+                padding: 4px 4px 4px 4px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden; 
+            }
+
+            .leftCol {
+                font-style: normal;
+                text-decoration: underline;
+                width: 20%;
+                vertical-align: top;
+                padding: 4px 4px 4px 4px;
+            }
+
+            .rightCol {
+                vertical-align: top;
+                max-height: 50px;
+                padding: 4px 4px 4px 16px;
+                text-overflow: ellipsis;
+                overflow: hidden; 
+            }
+
+            #closeBtn {
+                position: absolute;
+                margin-right: 4px;
+                margin-top: 4px;
+                margin-left: auto;
+                right: 0;
+                z-index: 2000;
+            }
+
+            a {
+                color: #000;
+            }
+
+            table {
+                border-collapse: collapse;
+            }
+            table td {
+                border: 1px solid darkgray; 
+            }
+            table th {
+                border: 1px solid darkgray; 
+                font-weight: normal;
+            }
+            table tr:first-child td {
+                border-top: 0;
+            }
+            table tr td:first-child {
+                border-left: 0;
+            }
+            table tr:last-child td {
+                border-bottom: 0;
+            }
+            table tr td:last-child {
+                border-right: 0;
+            }
+            table tr:first-child th {
+                border-top: 0;
+            }
+            table tr th:first-child {
+                border-left: 0;
+            }
+            table tr th:last-child {
+                border-right: 0;
             }
 
         </style>
     </head>
     <body>
         <div id="controls">
-            <div id="topicSelect">
+            <div id="topicSelect" class="searchBox">
                 <p>Filter by topic</p>
                 <select id="topicList" data-placeholder="Search for topics..." onchange="processTopicSelect()" class="chosen-select">
                     <option></option>
                     <option value="-1">No filtering</option>
                 </select>
             </div>
+            <div id="articleSearch" class="searchBox">
+                <p>Search for articles</p>
+                <input id="articleSearchBox"></input>
+            </div>
         </div>
-        <div id="articleInfo"></div>
+        <div id="articleInfo">
+            <button id="closeBtn">
+                X
+            </button><br><br>
+            <table style="width:100%">
+                <tr>
+                  <th class="leftCol">Index:</th>
+                  <th id="doiValue" class="rightCol"></th>
+                </tr>
+                <tr>
+                  <td class="leftCol">Title:<br><br></td>
+                  <td id="titleValue" class="rightCol"></td>
+                </tr>
+                <tr>
+                  <td class="leftCol">Authors:<br><br></td>
+                  <td id="authorsValue" class="rightCol"></td>
+                </tr>
+                <tr>
+                  <td class="leftCol">Year:</td>
+                  <td id="yearValue" class="rightCol"></td>
+                </tr>
+                <tr>
+                  <td class="leftCol">Journal:</td>
+                  <td id="journalValue" class="rightCol"></td>
+                </tr>
+                <tr>
+                  <td class="leftCol">Assigned discipline:</td>
+                  <td id="disciplineValue" class="rightCol"></td>
+                </tr>
+                <tr>
+                  <td class="leftCol">Topics:</td>
+                  <td class="rightCol">
+                      <div id="topicBarChart">
+                      </div>
+                  </td>
+                </tr>
+              </table>
+        </div>
         <canvas id="lore"></canvas>
         <script src="dependencies/lore.js"></script>
         <script src="dependencies/pako.min.js"></script>

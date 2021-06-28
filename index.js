@@ -466,12 +466,19 @@ function draw() {
         return nnDirections;
     };
 
-    function getLinkFromDoi(doi, journal) {
+    function getLinkFromDoi(doi, journal, discipline) {
+        if (doi.charAt(doi.length - 1) === ".") {
+            doi = doi.substring(0, doi.length - 1);
+        }
+        jstorDisciplines = ['Linguistics', 'Mathematics', 'Statistics', 'Sociology', 'Political Science', 'History', 'Literary Theory', 
+        'Art History', 'Philosophy', 'Musicology', 'Classical Studies'];
         if (journal === "Digital Humanities Quarterly") {
             doi = doi.substring(4)
             return "<a href='http://www.digitalhumanities.org/dhq/findIt?queryString=" + doi + "' target='blank'  rel='noopener noreferrer'>dhq/" + doi + "</a>"
         } else if (journal === "Computational Linguistics") {
             return "<a href='https://www.aclweb.org/anthology/" + doi + "' target='blank'  rel='noopener noreferrer'>" + doi + "</a>"
+        } else if (jstorDisciplines.includes(discipline) || journal === "Machine Translation") {
+            return "<a href='https://www.jstor.org/stable/" + doi + "' target='blank'  rel='noopener noreferrer'>" + doi + "</a>"
         } else {
             return "<a href='https://doi.org/" + doi + "' target='blank'  rel='noopener noreferrer'>" + doi + "</a>"
         }
@@ -484,7 +491,7 @@ function draw() {
             let cell = document.getElementById(key);
             if (cell) {
                 if (key === "doiValue") {
-                    cell.innerHTML = getLinkFromDoi(articleData[key], articleData["journalValue"]);
+                    cell.innerHTML = getLinkFromDoi(articleData[key], articleData["journalValue"], articleData["disciplineValue"]);
                 } else {
                     cell.innerHTML = articleData[key];
                 }

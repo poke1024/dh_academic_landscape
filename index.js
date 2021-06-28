@@ -276,8 +276,10 @@ function draw() {
     
 
     document.addEventListener('click', function(e) {
+        let articleInfoBox = document.getElementById("articleInfo");
         if (document.getElementById("articleInfo").style.display != "none") {
             hardSelect = true;
+            articleInfoBox.style.pointerEvents = 'auto';
         } 
     });
 
@@ -677,9 +679,9 @@ function draw() {
     }
 
     function closeArticleInfo() {
-        console.log("click")
         let articleInfoBox = document.getElementById("articleInfo");
         articleInfoBox.style.display = "none";
+        articleInfoBox.style.pointerEvents = "none";
         hardSelect = false;
     }
 

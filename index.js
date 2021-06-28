@@ -574,7 +574,7 @@ function draw() {
     
     function getArticleInfo(doi) {
         let title = capitalize(docData[doi]["title"]);
-        let authors = capitalize(docData[doi]["authors"].join(", "));
+        let authors = capitalize(docData[doi]["authors"].join(" / "));
         let discipline = disciplinePrint[docData[doi]["discipline"]];
         let journal = docData[doi]["journal"];
         let year = docData[doi]["year"];

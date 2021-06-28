@@ -494,6 +494,9 @@ function draw() {
     }
 
     function displayArticleInfo() {
+        if (!selectedArticle) {
+            return;
+        }
         var screenPosition = octreeHelper.getScreenPosition(selectedArticle);
         let articleInfo = document.getElementById('articleInfo');
         articleInfo.style.left = screenPosition[0] + "px";

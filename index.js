@@ -273,7 +273,7 @@ function draw() {
         let articleInfoBox = document.getElementById("articleInfo");
         if (document.getElementById("articleInfo").style.display != "none") {
             hardSelect = true;
-            lore.controls.setLookAt(pointHelper.getPosition(selectedArticle));
+            // lore.controls.setLookAt(pointHelper.getPosition(selectedArticle));
             displayArticleInfo();
             articleInfoBox.style.pointerEvents = 'auto';
         } 
@@ -307,7 +307,7 @@ function draw() {
 
         console.log("selected:", selectedArticle);
 
-        lore.controls.setLookAt(pointHelper.getPosition(selectedArticle));
+        // lore.controls.setLookAt(pointHelper.getPosition(selectedArticle));
 
         displayArticleInfo();
     });
@@ -680,7 +680,7 @@ function processArticleSelect(elem) {
     selectedArticle = elem.value;
     nearestNeighbors = getNearestNeighbors(selectedArticle);
     selectedBySearch = true;
-    lore.controls.setLookAt(pointHelper.getPosition(selectedArticle));
+    // lore.controls.setLookAt(pointHelper.getPosition(selectedArticle));
     displayArticleInfo();
 }
 

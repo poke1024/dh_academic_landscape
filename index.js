@@ -322,382 +322,382 @@ function draw() {
         displayArticleInfo();
     };
 
-    var distanceAndDirection = function(pointA, pointB){
-        var dx = pointB[0] - pointA[0];
-        var dy = pointB[1] - pointA[1];
-        // var dz = pointB[2] - pointA[2];
-        
-        var dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));// + Math.pow(dz, 2));
-       
-        var theta = Math.atan2(dy, dx); // range (-PI, PI]
-        theta *= 180 / Math.PI; // rads to degs, range (-180, 180]
-        var directions = [];
-        if (theta > 120 || theta < -120) {
-            directions.push("right");
-        } 
-        if (theta <= 150 && theta > 30) {
-            directions.push("down");
-        } 
-        if (theta <= 60 && theta > -60) {
-            directions.push("left");
-        }  
-        if (theta <= -30 && theta >= -150) {
-            directions.push("up");
-        }
-        
-        return [dist, directions];
-    }
-
-
-    function getAdjacencyMatrixFiltered() {
-        adjacencyMatrixFiltered = {};
-
-        for (let idxA in filteredArticles) {
-            idxA = filteredArticles[idxA];
-            let minDist = { "down" : 100000,
-                            "up" : 100000,
-                            "left" : 100000,
-                            "right" : 100000 };
-
-            adjacencyMatrixFiltered[idxA] = {
-                "down" : idxA,
-                "up" : idxA,
-                "left" : idxA,
-                "right" : idxA
-            };
-            for (let idxB in filteredArticles) {
-                idxB = filteredArticles[idxB];
-                if (idxB === idxA) continue;
-                distDir = distanceAndDirection([xPositions[idxB], yPositions[idxB]],
-                    [xPositions[idxA], yPositions[idxA]],
-                    );
-                for (let dir of distDir[1]) {
-                    if (distDir[0] < minDist[dir]) {
-                        minDist[dir] = distDir[0];
-                        adjacencyMatrixFiltered[idxA][dir] = idxB;
-                    }
-                }
-            }
-        }
-    }
-
-    function getNearestFiltered(pointIdx, dir) {
-        let minDist = 100000;
-        let minIdx = null;
-
-        for (let idx in filteredArticles) {
-            idx = filteredArticles[idx];
-            distDir = distanceAndDirection([xPositions[pointIdx], yPositions[pointIdx]],
-                [xPositions[idx], yPositions[idx]]);
-            if (!distDir[1].includes(dir)) {
-                continue;
-            }
-            if (distDir[0] < minDist) {
-                    minDist = distDir[0];
-                    minIdx = idx;
-                }
-        }
-        return minIdx;
-    }
-
-
-    function getNearestNeighbors(pointIndex, filter = true) {
-        if (pointIndex in nearestNeighborsCache) {
-            console.log("in cache");
-            return nearestNeighborsCache[pointIndex];
-        }
-        var nnIndices = octreeHelper.octree.kNearestNeighbours(500, pointIndex, null, positions);
-        var pointPosition = [positions[pointIndex * 3], positions[pointIndex * 3 + 1], positions[pointIndex * 3 + 2]];
-        var nnDistances = { };
-        var nnDirections = {
-            "left" : null,
-            "right" : null,
-            "up" : null,
-            "down" : null
-        };
-        for (let idx in nnIndices) {
-            idx = nnIndices[idx];
-            if (filter && filteredArticles.length !== 0 && !filteredArticles.includes(idx)) {
-                continue;
-            }
-            if (idx != pointIndex) {
-                position = [positions[idx * 3], positions[idx * 3 + 1], positions[idx * 3 + 2]];
-                let distanceDirection = distanceAndDirection(position, pointPosition);
-                nnDistances[idx] = distanceDirection[0];
-                for (let direction of distanceDirection[1]) {
-                    if (!nnDirections[direction]) {
-                        nnDirections[direction] = idx;
-                    } else if (distanceDirection[0] < nnDistances[nnDirections[direction]]) {
-                        nnDirections[direction] = idx;
-                    }
-                }
-                //if (nn_directions["left"] && nn_directions["right"] && nn_directions["up"] && nn_directions["down"]) {
-                //    break;
-                //}
-            } 
-        }
-
-        for (let direction of ["up", "down"]) {
-            if (!nnDirections[direction]) {
-                if (nnDirections["left"] && nnDirections["right"]) {
-                    const random = Math.floor(Math.random() * 2);
-                    nnDirections[direction] = [nnDirections["left"], nnDirections["right"]][random];
-                } else if (nnDirections["left"]) {
-                    nnDirections[direction] = nnDirections["left"];
-                } else if (nnDirections["right"]) {
-                    nnDirections[direction] = nnDirections["right"];
-                } else {
-                    nnDirections[direction] = pointIndex;
-                }
-            }
-        }
-
-        for (let direction of ["left", "right"]) {
-            if (!nnDirections[direction]) {
-                if (nnDirections["up"]) {
-                    nnDirections[direction] = nnDirections["up"];
-                } else if (nnDirections["down"]) {
-                    nnDirections[direction] = nnDirections["down"];
-                } else {
-                    nnDirections[direction] = pointIndex;
-                }
-            }
-        }
-
-        nearestNeighborsCache[pointIndex] = nnDirections;
-
-        return nnDirections;
-    };
-
-    function getLinkFromDoi(doi, journal, discipline) {
-        if (doi.charAt(doi.length - 1) === ".") {
-            doi = doi.substring(0, doi.length - 1);
-        }
-        jstorDisciplines = ['Linguistics', 'Mathematics', 'Statistics', 'Sociology', 'Political Science', 'History', 'Literary Theory', 
-        'Art History', 'Philosophy', 'Musicology', 'Classical Studies'];
-        if (journal === "Digital Humanities Quarterly") {
-            doi = doi.substring(4)
-            return "<a href='http://www.digitalhumanities.org/dhq/findIt?queryString=" + doi + "' target='blank'  rel='noopener noreferrer'>dhq/" + doi + "</a>"
-        } else if (journal === "Computational Linguistics") {
-            return "<a href='https://www.aclweb.org/anthology/" + doi + "' target='blank'  rel='noopener noreferrer'>" + doi + "</a>"
-        } else if (jstorDisciplines.includes(discipline) || journal === "Machine Translation") {
-            return "<a href='https://www.jstor.org/stable/" + doi + "' target='blank'  rel='noopener noreferrer'>" + doi + "</a>"
-        } else {
-            return "<a href='https://doi.org/" + doi + "' target='blank'  rel='noopener noreferrer'>" + doi + "</a>"
-        }
-    };
-
-    function fillArticleTable(doi) {
-        let articleData = getArticleInfo(doi);
-        for (let key of Object.keys(articleData)) {
-            console.log(key);
-            let cell = document.getElementById(key);
-            if (cell) {
-                if (key === "doiValue") {
-                    cell.innerHTML = getLinkFromDoi(articleData[key], articleData["journalValue"], articleData["disciplineValue"]);
-                } else {
-                    cell.innerHTML = articleData[key];
-                }
-            }
-        }
-        fillArticleTopics(doi);
-    }
-
-    function displayArticleInfo() {
-        if (!selectedArticle) {
-            return;
-        }
-        var screenPosition = octreeHelper.getScreenPosition(selectedArticle);
-        let articleInfo = document.getElementById('articleInfo');
-        articleInfo.style.left = screenPosition[0] + "px";
-        articleInfo.style.top = screenPosition[1] + "px";
-        let bgColor = disciplineColorsUnselected[docData[doiValues[selectedArticle]]["discipline"]];
-        articleInfo.style.backgroundColor = "rgba(" + bgColor[0] + ", " + bgColor[1] + ", " + bgColor[2] + ", 0.8)";
-        fillArticleTable(doiValues[selectedArticle]);
-        articleInfo.style.display = "block";
-        getAdjacencyMatrixFiltered();
-    }
-
-    document.addEventListener('mousewheel', function(e) {
-        pointHelper.setPointScale(4.0 * (1 / lore.controls.camera.zoom**0.66));
-    });
-
-    var disciplinePrint = {'digital_humanities': 'Digital Humanities',
-    'information_science': 'Information Science',
-    'computational_linguistics': 'Computational Linguistics',
-    'linguistics': 'Linguistics',
-    'applied_cs': 'Applied Computer Science',
-    'theoretical_cs': 'Theoretical Computer Science',
-    'mathematics': 'Mathematics',
-    'statistics': 'Statistics',
-    'sociology': 'Sociology',
-    'political_science': 'Political Science',
-    'history': 'History',
-    'literary_theory': 'Literary Theory',
-    'art_history': 'Art History',
-    'philosophy': 'Philosophy',
-    'musicology': 'Musicology',
-    'classical_studies': 'Classical Studies'};
-
-    function isCharacterALetter(char) {
-        return (/[a-zA-Z\u00C0-\u017F]/).test(char)
-      }
+var distanceAndDirection = function(pointA, pointB){
+    var dx = pointB[0] - pointA[0];
+    var dy = pointB[1] - pointA[1];
+    // var dz = pointB[2] - pointA[2];
     
-    function capitalize(words) {
-        var separateWord = words.toLowerCase().split(' ');
-        for (var i = 0; i < separateWord.length; i++) {
-            for (var j = 0; j < separateWord[i].length; j++) {
-                if (isCharacterALetter(separateWord[i].charAt(j))) {
-                    separateWord[i] = separateWord[i].substring(0, j) 
-                    + separateWord[i].charAt(j).toUpperCase()
-                    + separateWord[i].substring(j + 1);
+    var dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));// + Math.pow(dz, 2));
+    
+    var theta = Math.atan2(dy, dx); // range (-PI, PI]
+    theta *= 180 / Math.PI; // rads to degs, range (-180, 180]
+    var directions = [];
+    if (theta > 120 || theta < -120) {
+        directions.push("right");
+    } 
+    if (theta <= 150 && theta > 30) {
+        directions.push("down");
+    } 
+    if (theta <= 60 && theta > -60) {
+        directions.push("left");
+    }  
+    if (theta <= -30 && theta >= -150) {
+        directions.push("up");
+    }
+    
+    return [dist, directions];
+}
+
+
+function getAdjacencyMatrixFiltered() {
+    adjacencyMatrixFiltered = {};
+
+    for (let idxA in filteredArticles) {
+        idxA = filteredArticles[idxA];
+        let minDist = { "down" : 100000,
+                        "up" : 100000,
+                        "left" : 100000,
+                        "right" : 100000 };
+
+        adjacencyMatrixFiltered[idxA] = {
+            "down" : idxA,
+            "up" : idxA,
+            "left" : idxA,
+            "right" : idxA
+        };
+        for (let idxB in filteredArticles) {
+            idxB = filteredArticles[idxB];
+            if (idxB === idxA) continue;
+            distDir = distanceAndDirection([xPositions[idxB], yPositions[idxB]],
+                [xPositions[idxA], yPositions[idxA]],
+                );
+            for (let dir of distDir[1]) {
+                if (distDir[0] < minDist[dir]) {
+                    minDist[dir] = distDir[0];
+                    adjacencyMatrixFiltered[idxA][dir] = idxB;
+                }
+            }
+        }
+    }
+}
+
+function getNearestFiltered(pointIdx, dir) {
+    let minDist = 100000;
+    let minIdx = null;
+
+    for (let idx in filteredArticles) {
+        idx = filteredArticles[idx];
+        distDir = distanceAndDirection([xPositions[pointIdx], yPositions[pointIdx]],
+            [xPositions[idx], yPositions[idx]]);
+        if (!distDir[1].includes(dir)) {
+            continue;
+        }
+        if (distDir[0] < minDist) {
+                minDist = distDir[0];
+                minIdx = idx;
+            }
+    }
+    return minIdx;
+}
+
+
+function getNearestNeighbors(pointIndex, filter = true) {
+    if (pointIndex in nearestNeighborsCache) {
+        console.log("in cache");
+        return nearestNeighborsCache[pointIndex];
+    }
+    var nnIndices = octreeHelper.octree.kNearestNeighbours(500, pointIndex, null, positions);
+    var pointPosition = [positions[pointIndex * 3], positions[pointIndex * 3 + 1], positions[pointIndex * 3 + 2]];
+    var nnDistances = { };
+    var nnDirections = {
+        "left" : null,
+        "right" : null,
+        "up" : null,
+        "down" : null
+    };
+    for (let idx in nnIndices) {
+        idx = nnIndices[idx];
+        if (filter && filteredArticles.length !== 0 && !filteredArticles.includes(idx)) {
+            continue;
+        }
+        if (idx != pointIndex) {
+            position = [positions[idx * 3], positions[idx * 3 + 1], positions[idx * 3 + 2]];
+            let distanceDirection = distanceAndDirection(position, pointPosition);
+            nnDistances[idx] = distanceDirection[0];
+            for (let direction of distanceDirection[1]) {
+                if (!nnDirections[direction]) {
+                    nnDirections[direction] = idx;
+                } else if (distanceDirection[0] < nnDistances[nnDirections[direction]]) {
+                    nnDirections[direction] = idx;
+                }
+            }
+            //if (nn_directions["left"] && nn_directions["right"] && nn_directions["up"] && nn_directions["down"]) {
+            //    break;
+            //}
+        } 
+    }
+
+    for (let direction of ["up", "down"]) {
+        if (!nnDirections[direction]) {
+            if (nnDirections["left"] && nnDirections["right"]) {
+                const random = Math.floor(Math.random() * 2);
+                nnDirections[direction] = [nnDirections["left"], nnDirections["right"]][random];
+            } else if (nnDirections["left"]) {
+                nnDirections[direction] = nnDirections["left"];
+            } else if (nnDirections["right"]) {
+                nnDirections[direction] = nnDirections["right"];
+            } else {
+                nnDirections[direction] = pointIndex;
+            }
+        }
+    }
+
+    for (let direction of ["left", "right"]) {
+        if (!nnDirections[direction]) {
+            if (nnDirections["up"]) {
+                nnDirections[direction] = nnDirections["up"];
+            } else if (nnDirections["down"]) {
+                nnDirections[direction] = nnDirections["down"];
+            } else {
+                nnDirections[direction] = pointIndex;
+            }
+        }
+    }
+
+    nearestNeighborsCache[pointIndex] = nnDirections;
+
+    return nnDirections;
+};
+
+function getLinkFromDoi(doi, journal, discipline) {
+    if (doi.charAt(doi.length - 1) === ".") {
+        doi = doi.substring(0, doi.length - 1);
+    }
+    jstorDisciplines = ['Linguistics', 'Mathematics', 'Statistics', 'Sociology', 'Political Science', 'History', 'Literary Theory', 
+    'Art History', 'Philosophy', 'Musicology', 'Classical Studies'];
+    if (journal === "Digital Humanities Quarterly") {
+        doi = doi.substring(4)
+        return "<a href='http://www.digitalhumanities.org/dhq/findIt?queryString=" + doi + "' target='blank'  rel='noopener noreferrer'>dhq/" + doi + "</a>"
+    } else if (journal === "Computational Linguistics") {
+        return "<a href='https://www.aclweb.org/anthology/" + doi + "' target='blank'  rel='noopener noreferrer'>" + doi + "</a>"
+    } else if (jstorDisciplines.includes(discipline) || journal === "Machine Translation") {
+        return "<a href='https://www.jstor.org/stable/" + doi + "' target='blank'  rel='noopener noreferrer'>" + doi + "</a>"
+    } else {
+        return "<a href='https://doi.org/" + doi + "' target='blank'  rel='noopener noreferrer'>" + doi + "</a>"
+    }
+};
+
+function fillArticleTable(doi) {
+    let articleData = getArticleInfo(doi);
+    for (let key of Object.keys(articleData)) {
+        console.log(key);
+        let cell = document.getElementById(key);
+        if (cell) {
+            if (key === "doiValue") {
+                cell.innerHTML = getLinkFromDoi(articleData[key], articleData["journalValue"], articleData["disciplineValue"]);
+            } else {
+                cell.innerHTML = articleData[key];
+            }
+        }
+    }
+    fillArticleTopics(doi);
+}
+
+function displayArticleInfo() {
+    if (!selectedArticle) {
+        return;
+    }
+    var screenPosition = octreeHelper.getScreenPosition(selectedArticle);
+    let articleInfo = document.getElementById('articleInfo');
+    articleInfo.style.left = screenPosition[0] + "px";
+    articleInfo.style.top = screenPosition[1] + "px";
+    let bgColor = disciplineColorsUnselected[docData[doiValues[selectedArticle]]["discipline"]];
+    articleInfo.style.backgroundColor = "rgba(" + bgColor[0] + ", " + bgColor[1] + ", " + bgColor[2] + ", 0.8)";
+    fillArticleTable(doiValues[selectedArticle]);
+    articleInfo.style.display = "block";
+    getAdjacencyMatrixFiltered();
+}
+
+document.addEventListener('mousewheel', function(e) {
+    pointHelper.setPointScale(4.0 * (1 / lore.controls.camera.zoom**0.66));
+});
+
+var disciplinePrint = {'digital_humanities': 'Digital Humanities',
+'information_science': 'Information Science',
+'computational_linguistics': 'Computational Linguistics',
+'linguistics': 'Linguistics',
+'applied_cs': 'Applied Computer Science',
+'theoretical_cs': 'Theoretical Computer Science',
+'mathematics': 'Mathematics',
+'statistics': 'Statistics',
+'sociology': 'Sociology',
+'political_science': 'Political Science',
+'history': 'History',
+'literary_theory': 'Literary Theory',
+'art_history': 'Art History',
+'philosophy': 'Philosophy',
+'musicology': 'Musicology',
+'classical_studies': 'Classical Studies'};
+
+function isCharacterALetter(char) {
+    return (/[a-zA-Z\u00C0-\u017F]/).test(char)
+    }
+
+function capitalize(words) {
+    var separateWord = words.toLowerCase().split(' ');
+    for (var i = 0; i < separateWord.length; i++) {
+        for (var j = 0; j < separateWord[i].length; j++) {
+            if (isCharacterALetter(separateWord[i].charAt(j))) {
+                separateWord[i] = separateWord[i].substring(0, j) 
+                + separateWord[i].charAt(j).toUpperCase()
+                + separateWord[i].substring(j + 1);
+                break;
+            }
+        }
+        
+    }
+    return separateWord.join(' ');
+    }
+
+function fillArticleTopics(doi) {
+    let topics = docData[doi]["top_topics"];
+    let topicsSorted = Object.keys(topics).sort(function(a,b){return topics[b]-topics[a]});
+    let topicBarChart = document.getElementById("topicBarChart");
+    topicBarChart.innerHTML = "";
+    for (var i = 0; i < Math.min(topicsSorted.length, 10); i++) {
+        let topicIdx = topicsSorted[i];
+        let terms = getTopicTerms(topicIdx);
+        let valuePercent = Math.round(topics[topicIdx] * 1000) / 10;
+        let valuePercentAdj = Math.min(100, valuePercent * 2)
+        topicStr = "[" + topicIdx + "] " + terms.slice(0, 5).join(", ")
+        bar = document.createElement("div");
+        bar.classList.add('topicBar');
+        bar.innerHTML = "<span class='valueText'>" + 
+            valuePercent.toString() + "%</span>";
+        bar.style.top = (i * 20).toString() + "px";
+        bar.style.width = valuePercentAdj.toString() + "%";
+        topicBarChart.appendChild(bar);
+        text = document.createElement("div");
+        text.innerHTML = topicStr;
+        text.classList.add("topicBarText");
+        text.style.top = (i * 20).toString() + "px";
+        topicBarChart.appendChild(text);
+    }
+}
+
+function getArticleInfo(doi) {
+    let title = capitalize(docData[doi]["title"]);
+    let authors = capitalize(docData[doi]["authors"].join(" / "));
+    let discipline = disciplinePrint[docData[doi]["discipline"]];
+    let journal = docData[doi]["journal"];
+    let year = docData[doi]["year"];
+    if (journal === "Digital Humanities Quarterly") {
+        doi = "dhq/" + doi;
+    }
+    return {
+        "doiValue" : doi,
+        "titleValue" : title,
+        "authorsValue" : authors,
+        "disciplineValue" : discipline,
+        "journalValue" : journal,
+        "yearValue" : year
+    }
+}
+
+var articleListEntries = [];
+
+function initArticleList() {
+    let articleList = document.getElementById('articleSearchBox');
+    articleList.setAttribute("onkeyup","processArticleSearch(this);");
+    for (var idx = 0; idx < doiValues.length; idx++) {
+        let doi = doiValues[idx];
+        let articleInfos = getArticleInfo(doi);
+        var li = document.createElement("button");
+        li.appendChild(document.createTextNode(articleInfos["titleValue"]
+        + " (" + articleInfos["yearValue"] + "; " + articleInfos["authorsValue"] + "; " 
+        + articleInfos["doiValue"] + ")"));
+        li.value = idx;
+        let bgColor = disciplineColorsUnselected[docData[doi]["discipline"]];
+        li.style.backgroundColor = "rgba(" + bgColor[0] + ", " + bgColor[1] + ", " + bgColor[2] + ", 0.5)";
+        articleListEntries.push(li);
+    }
+}
+
+function processArticleSearch(elem) {
+    let articleList = document.getElementById('articleList');
+    let searchTerms = elem.value.trim().split(" ");
+
+    if (elem.value.trim().length > 2) {
+        elem.classList.add("dropdown");
+
+        if (articleList == null) {
+            articleList = document.createElement("div");
+            articleList.id = "articleList";
+            elem.parentNode.appendChild(articleList);
+        }
+        articleList.innerHTML = "<br>";
+        let empty = true;
+
+        for (let entry of articleListEntries) {
+            let textNode = entry.firstChild;
+            let match = false;
+
+            for (let term of searchTerms) {
+                if (textNode.data.toLowerCase().indexOf(term.toLowerCase()) !== -1) {
+                    match = true;
+                } else {
+                    match = false;
                     break;
                 }
             }
-           
-        }
-        return separateWord.join(' ');
-     }
 
-    function fillArticleTopics(doi) {
-        let topics = docData[doi]["top_topics"];
-        let topicsSorted = Object.keys(topics).sort(function(a,b){return topics[b]-topics[a]});
-        let topicBarChart = document.getElementById("topicBarChart");
-        topicBarChart.innerHTML = "";
-        for (var i = 0; i < Math.min(topicsSorted.length, 10); i++) {
-            let topicIdx = topicsSorted[i];
-            let terms = getTopicTerms(topicIdx);
-            let valuePercent = Math.round(topics[topicIdx] * 1000) / 10;
-            let valuePercentAdj = Math.min(100, valuePercent * 2)
-            topicStr = "[" + topicIdx + "] " + terms.slice(0, 5).join(", ")
-            bar = document.createElement("div");
-            bar.classList.add('topicBar');
-            bar.innerHTML = "<span class='valueText'>" + 
-                valuePercent.toString() + "%</span>";
-            bar.style.top = (i * 20).toString() + "px";
-            bar.style.width = valuePercentAdj.toString() + "%";
-            topicBarChart.appendChild(bar);
-            text = document.createElement("div");
-            text.innerHTML = topicStr;
-            text.classList.add("topicBarText");
-            text.style.top = (i * 20).toString() + "px";
-            topicBarChart.appendChild(text);
-        }
-    }
-    
-    function getArticleInfo(doi) {
-        let title = capitalize(docData[doi]["title"]);
-        let authors = capitalize(docData[doi]["authors"].join(" / "));
-        let discipline = disciplinePrint[docData[doi]["discipline"]];
-        let journal = docData[doi]["journal"];
-        let year = docData[doi]["year"];
-        if (journal === "Digital Humanities Quarterly") {
-            doi = "dhq/" + doi;
-        }
-        return {
-            "doiValue" : doi,
-            "titleValue" : title,
-            "authorsValue" : authors,
-            "disciplineValue" : discipline,
-            "journalValue" : journal,
-            "yearValue" : year
-        }
-    }
-    
-    var articleListEntries = [];
-    
-    function initArticleList() {
-        let articleList = document.getElementById('articleSearchBox');
-        articleList.setAttribute("onkeyup","processArticleSearch(this);");
-        for (var idx = 0; idx < doiValues.length; idx++) {
-            let doi = doiValues[idx];
-            let articleInfos = getArticleInfo(doi);
-            var li = document.createElement("button");
-            li.appendChild(document.createTextNode(articleInfos["titleValue"]
-            + " (" + articleInfos["yearValue"] + "; " + articleInfos["authorsValue"] + "; " 
-            + articleInfos["doiValue"] + ")"));
-            li.value = idx;
-            let bgColor = disciplineColorsUnselected[docData[doi]["discipline"]];
-            li.style.backgroundColor = "rgba(" + bgColor[0] + ", " + bgColor[1] + ", " + bgColor[2] + ", 0.5)";
-            articleListEntries.push(li);
-        }
-    }
-    
-    function processArticleSearch(elem) {
-        let articleList = document.getElementById('articleList');
-        let searchTerms = elem.value.trim().split(" ");
-    
-        if (elem.value.trim().length > 2) {
-            elem.classList.add("dropdown");
-
-            if (articleList == null) {
-                articleList = document.createElement("div");
-                articleList.id = "articleList";
-                elem.parentNode.appendChild(articleList);
-            }
-            articleList.innerHTML = "<br>";
-            let empty = true;
-
-            for (let entry of articleListEntries) {
-                let textNode = entry.firstChild;
-                let match = false;
-
-                for (let term of searchTerms) {
-                    if (textNode.data.toLowerCase().indexOf(term.toLowerCase()) !== -1) {
-                        match = true;
-                    } else {
-                        match = false;
-                        break;
-                    }
-                }
-
-                if (match) {
-                    entry.setAttribute("onclick", "processArticleSelect(this);");
-                    entry.setAttribute("onmouseover", "processArticleListHover(this);");
-                    articleList.appendChild(entry);
-                    empty = false;
-                }
-            }
-            if (empty == true) {
-                let option = document.createElement("button");
-                option.disabled = true;
-                option.innerHTML = "No results";
-                articleList.appendChild(option);
-            }
-        } else {
-            if (articleList !== null) {
-                articleList.parentNode.removeChild(articleList);
-                elem.classList.remove("dropdown");
+            if (match) {
+                entry.setAttribute("onclick", "processArticleSelect(this);");
+                entry.setAttribute("onmouseover", "processArticleListHover(this);");
+                articleList.appendChild(entry);
+                empty = false;
             }
         }
+        if (empty == true) {
+            let option = document.createElement("button");
+            option.disabled = true;
+            option.innerHTML = "No results";
+            articleList.appendChild(option);
+        }
+    } else {
+        if (articleList !== null) {
+            articleList.parentNode.removeChild(articleList);
+            elem.classList.remove("dropdown");
+        }
     }
+}
 
-    function processArticleListHover(elem) {
-        selectedArticle = elem.value;
-        nearestNeighbors = getNearestNeighbors(selectedArticle);
-        selectedBySearch = true;
-        displayArticleInfo();
-    }
-    
-    function processArticleSelect(elem) {
-        let articleSearchBox = document.getElementById('articleSearchBox');
-        articleSearchBox.classList.remove("dropdown");
-        articleSearchBox.value = "";
-        elem.parentNode.parentNode.removeChild(elem.parentNode);
-        selectedArticle = elem.value;
-        nearestNeighbors = getNearestNeighbors(selectedArticle);
-        selectedBySearch = true;
-        lore.controls.setLookAt(pointHelper.getPosition(selectedArticle));
-        displayArticleInfo();
-    }
+function processArticleListHover(elem) {
+    selectedArticle = elem.value;
+    nearestNeighbors = getNearestNeighbors(selectedArticle);
+    selectedBySearch = true;
+    displayArticleInfo();
+}
 
-    function closeArticleInfo() {
-        let articleInfoBox = document.getElementById("articleInfo");
-        articleInfoBox.style.display = "none";
-        articleInfoBox.style.pointerEvents = "none";
-        hardSelect = false;
-    }
+function processArticleSelect(elem) {
+    let articleSearchBox = document.getElementById('articleSearchBox');
+    articleSearchBox.classList.remove("dropdown");
+    articleSearchBox.value = "";
+    elem.parentNode.parentNode.removeChild(elem.parentNode);
+    selectedArticle = elem.value;
+    nearestNeighbors = getNearestNeighbors(selectedArticle);
+    selectedBySearch = true;
+    lore.controls.setLookAt(pointHelper.getPosition(selectedArticle));
+    displayArticleInfo();
+}
 
-    document.getElementById("closeBtn").addEventListener("click", function(e) {
-        closeArticleInfo();
-    });
+function closeArticleInfo() {
+    let articleInfoBox = document.getElementById("articleInfo");
+    articleInfoBox.style.display = "none";
+    articleInfoBox.style.pointerEvents = "none";
+    hardSelect = false;
+}
+
+document.getElementById("closeBtn").addEventListener("click", function(e) {
+    closeArticleInfo();
+});

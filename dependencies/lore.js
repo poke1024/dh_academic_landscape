@@ -149,6 +149,7 @@ class CameraBase extends Node {
 
   setLookAt(vec) {
     this.rotation.lookAt(this.position, vec, Vector3f.up());
+    console.log(this.rotation, this.position, this.viewMatrix);
     return this;
   }
   /**

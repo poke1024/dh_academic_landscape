@@ -120,7 +120,6 @@ let coordinateHelper = null;
 
 let selectedArticle = 9907;
 let mouseOverArticle = false;
-let hoverTime = Date.now();
 var initMode = true;
 var selectedBySearch = false;
 var hardSelect = false;
@@ -226,12 +225,6 @@ function draw() {
     octreeHelper = new Lore.Helpers.OctreeHelper(lore, 'OctreeGeometry', 'tree', pointHelper);
 
     octreeHelper.addEventListener('hoveredchanged', function(e) {
-        if ((Date.now() - hoverTime) < 20) {
-            hoverTime = Date.now();
-            return;
-        } else {
-            hoverTime = Date.now();
-        }
         if (e.e) {
             mouseOverArticle = true;
         } else {

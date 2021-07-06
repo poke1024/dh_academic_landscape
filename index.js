@@ -1,11 +1,3 @@
-async function fetchGzippedJson(url) {
-    const response = await fetch(url);
-    data = await (await response.blob()).arrayBuffer();
-    let result = pako.ungzip(new Uint8Array(data), {"to": "string"});
-    let obj = JSON.parse(result);
-    return obj
-}
-
 var docData;
 var topicData;
 var termData;
@@ -16,10 +8,19 @@ var zPositions = [];
 var colorsR = [];
 var colorsG = [];
 var colorsB = [];
+var sizes = [];
 var doiValues = [];
 var disciplines = [];
 
 var currentlySelectedTopic = null;
+
+async function fetchGzippedJson(url) {
+    const response = await fetch(url);
+    data = await (await response.blob()).arrayBuffer();
+    let result = pako.ungzip(new Uint8Array(data), {"to": "string"});
+    let obj = JSON.parse(result);
+    return obj
+}
 
 Promise.allSettled([fetchGzippedJson('data/doc_details_map.json.gz'), 
 fetchGzippedJson('data/topic_details_map.json.gz'),
@@ -57,8 +58,6 @@ function processTopicSelect() {
     document.getElementById('articleInfo').style.display = "none";
     hardSelect = false;
 }
-
-
 
 const pSBC=(p,c0,c1,l)=>{
     let r,g,b,P,f,t,h,i=parseInt,m=Math.round,a=typeof(c1)=="string";
@@ -118,6 +117,7 @@ let pointHelper = new Lore.Helpers.PointHelper(lore, 'FlyBaby', 'circle');
 let octreeHelper = null;
 let coordinateHelper = null;
 
+let selectedBefore = null;
 let selectedArticle = 9907;
 let mouseOverArticle = false;
 var initMode = true;
@@ -130,6 +130,7 @@ var filteredArticles = [];
 var adjacencyMatrixFiltered = {};
 
 var positions = [];
+
 function filterByTopic() {
     filteredArticles = [];
     if (currentlySelectedTopic === -1) {
@@ -143,6 +144,16 @@ function filterByTopic() {
         }
     }
     updateColors();
+}
+
+function updateSize() {
+    if (filteredArticles.includes(selectedBefore)) {
+        sizes[selectedBefore] = 2;
+    }else {
+        sizes[selectedBefore] = 1;
+    }
+    sizes[selectedArticle] = 3;
+    //pointHelper.setSize(sizes);
 }
 
 function updateColors() {
@@ -171,7 +182,7 @@ function updateColors() {
             colorsR.push(color[0]);
             colorsG.push(color[1]);
             colorsB.push(color[2]);
-            sizes.push(3);
+            sizes.push(1.5);
             zPositions.push(10);
         }
     }
@@ -195,7 +206,7 @@ function draw() {
         disciplines.push(article["discipline"]);
         xPositions.push(article["x_pos"]);
         yPositions.push(article["y_pos"]);
-        zPositions.push(0);
+        zPositions.push(Math.round(Math.random()*200) - 100);
         color = disciplineColors[article["discipline"]];
         colorsR.push(color[0]);
         colorsG.push(color[1]);
@@ -209,12 +220,12 @@ function draw() {
         yPositions[i] = 1000 * yPositions[i];
         positions.push(xPositions[i]);
         positions.push(yPositions[i]);
-        positions.push(0);
+        positions.push(zPositions[i]);
     }
 
     pointHelper.setXYZRGBS(xPositions, yPositions, zPositions, colorsR, colorsG, colorsB, 1);
     pointHelper.setPointScale(4.0);
-    pointHelper.setFog([1.0, 1.0, 1.0, 1.0], 1.0);
+    pointHelper.setFog([1.0, 1.0, 1.0, 1.0], 1.5);
 
     lore.controls.setLookAt(pointHelper.getCenter());
     lore.controls.setRadius(pointHelper.getMaxRadius());
@@ -235,6 +246,7 @@ function draw() {
             selectedBySearch = false;
             if (filteredArticles.length === 0 || filteredArticles.includes(e.e.index))  {
                 nearestNeighbors = getNearestNeighbors(e.e.index);
+                selectedBefore = selectedArticle;
                 selectedArticle = e.e.index;
                 displayArticleInfo();
             } else {
@@ -253,6 +265,7 @@ function draw() {
                 }
                 if (minDistIdx && minDist < 100) {
                     nearestNeighbors = getNearestNeighbors(minDistIdx);
+                    selectedBefore = selectedArticle;
                     selectedArticle = minDistIdx;
                     displayArticleInfo();
                 } else {
@@ -266,6 +279,13 @@ function draw() {
             let articleInfoBox = document.getElementById("articleInfo");
             articleInfoBox.style.display = "none";
         }
+    });
+
+    lore.controls.addEventListener('zoomchanged', function(e) {
+        if (document.getElementById("articleInfo").style.display != "none") {
+            displayArticleInfo();
+        }
+        pointHelper.setPointScale(4.0 * (1 / lore.controls.camera.zoom**0.66));
     });
     
 
@@ -294,13 +314,16 @@ function draw() {
             nnDir = "down";
         }
         if (filteredArticles.length === 0) {
+            selectedBefore = selectedArticle;
             selectedArticle = nearestNeighbors[nnDir];
             nearestNeighbors = getNearestNeighbors(selectedArticle);
         } else {
             if (filteredArticles.includes(selectedArticle)) {
                 console.log(adjacencyMatrixFiltered);
+                selectedBefore = selectedArticle;
                 selectedArticle = adjacencyMatrixFiltered[selectedArticle][nnDir];
             } else {
+                selectedBefore = selectedArticle;
                 selectedArticle = getNearestFiltered(selectedArticle);
             }
         }
@@ -483,7 +506,6 @@ function getLinkFromDoi(doi, journal, discipline) {
 function fillArticleTable(doi) {
     let articleData = getArticleInfo(doi);
     for (let key of Object.keys(articleData)) {
-        console.log(key);
         let cell = document.getElementById(key);
         if (cell) {
             if (key === "doiValue") {
@@ -496,24 +518,51 @@ function fillArticleTable(doi) {
     fillArticleTopics(doi);
 }
 
+function getViewportDimensions() {
+    let vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    let vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+    return [vw, vh];
+}
+
 function displayArticleInfo() {
     if (!selectedArticle) {
         return;
     }
+    updateSize(selectedArticle);
     var screenPosition = octreeHelper.getScreenPosition(selectedArticle);
+    var viewportDimensions = getViewportDimensions();
     let articleInfo = document.getElementById('articleInfo');
-    articleInfo.style.left = screenPosition[0] + "px";
-    articleInfo.style.top = screenPosition[1] + "px";
+    if (screenPosition[0] <= (viewportDimensions[0] / 2)) {
+        if (screenPosition[1] <= (viewportDimensions[1] / 2)) {
+            articleInfo.style.left = screenPosition[0] + "px";
+            articleInfo.style.right = null;
+            articleInfo.style.top = screenPosition[1] + "px";
+            articleInfo.style.bottom = null;
+        } else {
+            articleInfo.style.left = screenPosition[0] + "px";
+            articleInfo.style.right = null;
+            articleInfo.style.top = null;
+            articleInfo.style.bottom = viewportDimensions[1] - screenPosition[1] + "px";
+        }
+    } else {
+        if (screenPosition[1] <= (viewportDimensions[1] / 2)) {
+            articleInfo.style.left = null;
+            articleInfo.style.right = viewportDimensions[0] - screenPosition[0] + "px";
+            articleInfo.style.top = screenPosition[1] + "px";
+            articleInfo.style.bottom = null;
+        } else {
+            articleInfo.style.left = null;
+            articleInfo.style.right = viewportDimensions[0] - screenPosition[0] + "px";
+            articleInfo.style.top = null;
+            articleInfo.style.bottom = viewportDimensions[1] - screenPosition[1] + "px";
+        }
+    }
     let bgColor = disciplineColorsUnselected[docData[doiValues[selectedArticle]]["discipline"]];
     articleInfo.style.backgroundColor = "rgba(" + bgColor[0] + ", " + bgColor[1] + ", " + bgColor[2] + ", 0.8)";
     fillArticleTable(doiValues[selectedArticle]);
     articleInfo.style.display = "block";
     getAdjacencyMatrixFiltered();
 }
-
-document.addEventListener('mousewheel', function(e) {
-    pointHelper.setPointScale(4.0 * (1 / lore.controls.camera.zoom**0.66));
-});
 
 var disciplinePrint = {'digital_humanities': 'Digital Humanities',
 'information_science': 'Information Science',
@@ -574,8 +623,16 @@ function fillArticleTopics(doi) {
         text.innerHTML = topicStr;
         text.classList.add("topicBarText");
         text.style.top = (i * 20).toString() + "px";
+        text.setAttribute('onclick', "processClickedTopic(this);");
+        text.setAttribute('data-value', topicIdx);
+        text.style.cursor = "pointer";
         topicBarChart.appendChild(text);
     }
+}
+
+function processClickedTopic(elem) {
+    currentlySelectedTopic = parseInt(elem.getAttribute("data-value"));
+    filterByTopic();
 }
 
 function getArticleInfo(doi) {
@@ -620,7 +677,16 @@ function processArticleSearch(elem) {
     let articleList = document.getElementById('articleList');
     let searchTerms = elem.value.trim().split(" ");
 
-    if (elem.value.trim().length > 2) {
+    let anyTermLongerThanOne = false;
+
+    for (let term of searchTerms) {
+        if (term.length > 1) {
+            anyTermLongerThanOne = true;
+            break
+        }
+    }
+
+    if (elem.value.trim().length > 2 && anyTermLongerThanOne) {
         elem.classList.add("dropdown");
 
         if (articleList == null) {
@@ -646,7 +712,7 @@ function processArticleSearch(elem) {
 
             if (match) {
                 entry.setAttribute("onclick", "processArticleSelect(this);");
-                entry.setAttribute("onmouseover", "processArticleListHover(this);");
+                //entry.setAttribute("onmouseover", "processArticleListHover(this);");
                 articleList.appendChild(entry);
                 empty = false;
             }
@@ -666,6 +732,7 @@ function processArticleSearch(elem) {
 }
 
 function processArticleListHover(elem) {
+    selectedBefore = selectedArticle;
     selectedArticle = elem.value;
     nearestNeighbors = getNearestNeighbors(selectedArticle);
     selectedBySearch = true;
@@ -677,6 +744,7 @@ function processArticleSelect(elem) {
     articleSearchBox.classList.remove("dropdown");
     articleSearchBox.value = "";
     elem.parentNode.parentNode.removeChild(elem.parentNode);
+    selectedBefore = selectedArticle;
     selectedArticle = elem.value;
     nearestNeighbors = getNearestNeighbors(selectedArticle);
     selectedBySearch = true;

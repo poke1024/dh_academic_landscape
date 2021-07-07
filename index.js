@@ -32,6 +32,7 @@ fetchGzippedJson('data/term_details_map.json.gz')])
         draw();
         initTopicList();
         initArticleList();
+        drawDisciplineLegend();
     });
 
 function getTopicTerms(topicIdx) {
@@ -84,22 +85,23 @@ const pSBC=(p,c0,c1,l)=>{
     else return"#"+(4294967296+r*16777216+g*65536+b*256+(f?m(a*255):0)).toString(16).slice(1,f?undefined:-2)
 }
 
-var disciplineColors = {'digital_humanities': '#5267a1',
-'information_science': '#d4dc9c',
-'computational_linguistics': '#853e39',
-'linguistics': '#74bbcd',
-'applied_cs': '#c6aa52',
-'theoretical_cs': '#604c81',
-'mathematics': '#c8e1b6',
-'statistics': '#a66d2d',
-'sociology': '#addcc8',
-'political_science': '#4f84b7',
-'history': '#98572c',
-'literary_theory': '#b9913d',
-'art_history': '#713a5c',
-'philosophy': '#92cfce',
-'musicology': '#d5ce81',
-'classical_studies': '#5aa0c5'};
+var disciplineColors = {
+    'linguistics': '#74bbcd',
+    'computational_linguistics': '#853e39',
+    'philosophy': '#92cfce',
+    'digital_humanities': '#5267a1',
+    'information_science': '#d4dc9c',
+    'applied_cs': '#c6aa52',
+    'theoretical_cs': '#604c81',
+    'mathematics': '#c8e1b6',
+    'art_history': '#713a5c',
+    'literary_theory': '#b9913d',
+    'sociology': '#addcc8',
+    'statistics': '#a66d2d',
+    'musicology': '#d5ce81',
+    'history': '#98572c',
+    'political_science': '#4f84b7',
+    'classical_studies': '#5aa0c5'};
 
 var disciplineColorsUnselected = {};
 
@@ -118,7 +120,7 @@ let octreeHelper = null;
 let coordinateHelper = null;
 
 let selectedBefore = null;
-let selectedArticle = 9907;
+let selectedArticle = null;
 let mouseOverArticle = false;
 var initMode = true;
 var selectedBySearch = false;
@@ -130,6 +132,27 @@ var filteredArticles = [];
 var adjacencyMatrixFiltered = {};
 
 var positions = [];
+
+function drawDisciplineLegend() {
+    disciplineLegend = document.getElementById("disciplineLegendTable");
+    var tbdy = document.createElement('tbody');
+    for (let [discipline, color] of Object.entries(disciplineColors)) {
+        var tr = document.createElement('tr');
+        var td = document.createElement('td');
+        tr.classList.add('disciplineDotCell');
+        var dot = document.createElement('span');
+        dot.classList.add('disciplineDot');
+        dot.style.backgroundColor = "rgba(" + color[0] + ", " + color[1] + ", " + color[2] + ", 1.0)";;
+        td.append(dot);
+        tr.append(td);
+        var td = document.createElement('td');
+        let text = document.createTextNode(disciplinePrint[discipline]);
+        td.appendChild(text);   
+        tr.append(td);   
+        tbdy.append(tr);
+    }
+    disciplineLegend.append(tbdy);
+}
 
 function filterByTopic() {
     filteredArticles = [];
@@ -291,12 +314,16 @@ function draw() {
 
     document.addEventListener('click', function(e) {
         let articleInfoBox = document.getElementById("articleInfo");
-        if (document.getElementById("articleInfo").style.display != "none") {
+        console.log(e);
+        if (document.getElementById("articleInfo").style.display != "none" && !hardSelect) {
             hardSelect = true;
             // lore.controls.setLookAt(pointHelper.getPosition(selectedArticle));
             displayArticleInfo();
             articleInfoBox.style.pointerEvents = 'auto';
-        } 
+        } else if (document.getElementById("articleInfo").style.display != "none") {
+            hardSelect = false;
+            closeArticleInfo();
+        }
     });
 
     document.addEventListener('keydown', function(e) {
@@ -533,7 +560,7 @@ function displayArticleInfo() {
     var viewportDimensions = getViewportDimensions();
     let articleInfo = document.getElementById('articleInfo');
     if (screenPosition[0] <= (viewportDimensions[0] / 2)) {
-        if (screenPosition[1] <= (viewportDimensions[1] / 2)) {
+        if (screenPosition[1] <= (viewportDimensions[1] * 0.618)) {
             articleInfo.style.left = screenPosition[0] + "px";
             articleInfo.style.right = null;
             articleInfo.style.top = screenPosition[1] + "px";
@@ -545,7 +572,7 @@ function displayArticleInfo() {
             articleInfo.style.bottom = viewportDimensions[1] - screenPosition[1] + "px";
         }
     } else {
-        if (screenPosition[1] <= (viewportDimensions[1] / 2)) {
+        if (screenPosition[1] <= (viewportDimensions[1] * 0.618)) {
             articleInfo.style.left = null;
             articleInfo.style.right = viewportDimensions[0] - screenPosition[0] + "px";
             articleInfo.style.top = screenPosition[1] + "px";
@@ -668,7 +695,7 @@ function initArticleList() {
         + articleInfos["doiValue"] + ")"));
         li.value = idx;
         let bgColor = disciplineColorsUnselected[docData[doi]["discipline"]];
-        li.style.backgroundColor = "rgba(" + bgColor[0] + ", " + bgColor[1] + ", " + bgColor[2] + ", 0.5)";
+        li.style.backgroundColor = "rgba(" + bgColor[0] + ", " + bgColor[1] + ", " + bgColor[2] + ", 0.8)";
         articleListEntries.push(li);
     }
 }

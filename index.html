@@ -11,6 +11,7 @@
                 height: 100%;
                 user-select: none;
                 overflow:hidden;
+                font-family: Helvetica, Arial, sans-serif;
             }
 
             #lore {
@@ -29,55 +30,47 @@
                 width: 500px;
                 height: auto;
                 color: #000;
-                font-family: Arial, Helvetica, sans-serif;
+                font-family: Helvetica, Arial, sans-serif;
                 text-align: right;
                 padding: 4px 4px 4px 4px;
             }
 
             #controls {
-                z-index: 10002;
+                height: 100%;
                 position: absolute;
-                top: 5px;
-                left: 5px;
-                right: 5px;
                 padding: 10px;
-                font-family: Arial, Helvetica, sans-serif;
+                font-family: Helvetica, Arial, sans-serif;
                 font-size: 0.75em;
+                background-color: rgba(255, 255, 255, 1);
+                border-style: solid;
+                border-width: 0px 3px 0px 0px;
+                width: 350px;
             }
 
             #topicSelect {
-                background-color: rgba(240, 239, 238, 0.555);
-                border-color: darkgray;
-                border-style:solid;
-                border-width: 1px;
-                border-radius: 5px;
+                width: 330px;
                 padding: 5px;
-                text-align: left;
-                float: right;
+                margin: 8px;
+                top: 350px;
                 position: absolute;
-                top: 10px;
-                right: 10px;
+                font-size: 10pt;
+                height: 200px;
             }
 
             #articleSearch {
-                width: 400px;
-                background-color: rgba(240, 239, 238, 0.555);
-                border-color: darkgray;
-                border-style:solid;
-                border-width: 1px;
-                border-radius: 5px;
+                width: 330px;
                 padding: 5px;
                 text-align: left;
                 float: right;
                 position: absolute;
-                top: 100px;
-                right: 10px;
+                top: 450px;
+                margin: 8px;
             }
 
             #topicList {
-                width: 400px;
+                width: 100%;
                 height: 21px;
-                font-family: Arial, Helvetica, sans-serif;
+                font-family: Helvetica, Arial, sans-serif;
                 overflow-x:auto;
                 overflow-y:auto;
             }
@@ -91,7 +84,7 @@
                 border: 1px solid #aaa;
                 padding: 4px 20px 4px 5px;
                 margin: 1px 0;
-                font-family: Arial, Helvetica, sans-serif;
+                font-family: Helvetica, Arial, sans-serif;
                 overflow-x:auto;
                 overflow-y:auto;
             }
@@ -101,11 +94,11 @@
             }
 
             #articleList {
-                width: 396px;
-                max-height: 196px;
+                width: 330px;
+                max-height: 330px;
                 border-width: 1;
                 padding: 0;
-                font-family: Arial, Helvetica, sans-serif;
+                font-family: Helvetica, Arial, sans-serif;
                 overflow-x:hidden;
                 overflow-y:auto;
             }
@@ -192,53 +185,154 @@
                 color: #000;
             }
 
-            table {
+            #articleInfo table {
                 border-collapse: collapse;
             }
-            table td {
+            #articleInfo table td {
                 border: 1px solid darkgray; 
             }
-            table th {
+            #articleInfo table th {
                 border: 1px solid darkgray; 
                 font-weight: normal;
             }
-            table tr:first-child td {
+            #articleInfo table tr:first-child td {
                 border-top: 0;
             }
-            table tr td:first-child {
+            #articleInfo table tr td:first-child {
                 border-left: 0;
             }
-            table tr:last-child td {
+            #articleInfo table tr:last-child td {
                 border-bottom: 0;
             }
-            table tr td:last-child {
+            #articleInfo table tr td:last-child {
                 border-right: 0;
             }
-            table tr:first-child th {
+            #articleInfo table tr:first-child th {
                 border-top: 0;
             }
-            table tr th:first-child {
+            #articleInfo table tr th:first-child {
                 border-left: 0;
             }
-            table tr th:last-child {
+            #articleInfo table tr th:last-child {
                 border-right: 0;
+            }
+
+            .tooltip .tooltiptext {
+                visibility: hidden;
+                width: 200px;
+                background-color: rgba(85, 85, 85, 0.597);
+                color: #fff;
+                text-align: center;
+                padding: 5px 0;
+                border-radius: 2px;
+
+                /* Position the tooltip text */
+                position: absolute;
+                z-index: 1;
+                top: 2px;
+                right: 2px;
+                margin-left: -60px;
+
+                /* Fade in tooltip */
+                opacity: 0;
+                transition: opacity 0.3s;
+            }
+
+                /* Show the tooltip text when you mouse over the tooltip container */
+            .tooltip:hover .tooltiptext {
+                visibility: visible;
+                opacity: 1;
+            }
+
+            .disciplineDot {
+                height: 16px;
+                width: 16px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+
+            #disciplineLegend {
+                width: 5%;
+                min-width: 200px;
+                position: absolute;
+                bottom: 10px;
+                left: 10px;
+                font-size: 9pt;
+                padding: 8px 0px 8px 8px;
+                text-align: left;
+            }
+
+            #disciplineLegend table {
+                border-width:
+            }
+
+            #disciplineDotCell {
+                max-width: 20px;
+            }
+            
+            #projectHeader {
+                position: absolute;
+                z-index: 10010;
+                left: 10px;
+                top: 10px;
+                height: 200px;
+                padding: 8px;
+                text-align: left;
+            }
+
+            #projectHeader #projectTitle {
+                font-size: 15pt;
+            }
+
+            #projectHeader #projectInfo {
+                font-size: 11pt;
+            }
+
+            #projectHeader #projectInfo2 {
+                font-size: 9pt;
             }
 
         </style>
     </head>
     <body>
         <div id="controls">
+            <div id="projectHeader">
+                <span id="projectTitle">
+                    DH in the Academic Landscape
+                </span><br><br>
+                <span id="projectInfo">
+                    Authors: Jan Luhmann, Manuel Burghardt<br>
+                    Computational Humanities Group, Leipzig University<br>
+                    <br>
+                    Original paper in JASIST:<br><a href="https://asistdl.onlinelibrary.wiley.com/doi/full/10.1002/asi.24533" target="_blank" rel="noopener noreferrer">
+                        Digital humanities—A discipline in its own right?
+                    </a>
+                </span><br><br><br><br>
+                <span id="projectInfo2">
+                    A <a href="https://umap-learn.readthedocs.io/en/latest/" target="_blank" rel="noopener noreferrer"></a>UMAP projection of journal articles from 16 academic disciplines, based on 
+                        LDA-generated topics, stabilized using Agglomerative Clustering. Color scheme by <a href="https://www.fabiocrameri.ch/colourmaps/" target="_blank" rel="noopener noreferrer">Fabio Crameri</a>.
+                </span>
+            </div>
             <div id="topicSelect" class="searchBox">
-                <p>Filter by topic</p>
+                <p>Filter by topic
+                <span style="float:right;">
+                    <a id="topicSpreadsheet" href="https://docs.google.com/spreadsheets/d/1mNmkUGAC-GrivAR1dHARgrDd5Ig4yZ8fK8W85dscyTk/edit#gid=901474758"
+                    target="_blank" rel="noopener noreferrer">Detailed overview of all topics</a>
+                </span></p>
                 <select id="topicList" data-placeholder="Search for topics..." onchange="processTopicSelect()" class="chosen-select">
                     <option></option>
                     <option value="-1">No filtering</option>
                 </select>
             </div>
-            <div id="articleSearch" class="searchBox">
+            <div id="articleSearch" class="searchBox tooltip">
+                <span class="tooltiptext">Search for any information in the bibliographic data of the articles</span>
                 <p>Search for articles</p>
                 <input id="articleSearchBox"></input>
             </div>
+        </div>
+        <div id="disciplineLegend">
+            <table style="width:100%", id="disciplineLegendTable">
+              </table>
         </div>
         <div id="articleInfo">
             <button id="closeBtn">

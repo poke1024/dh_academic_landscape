@@ -45,6 +45,7 @@
                 border-style: solid;
                 border-width: 0px 3px 0px 0px;
                 width: 350px;
+                float: left;
             }
 
             #topicSelect {
@@ -52,17 +53,15 @@
                 padding: 5px;
                 margin: 8px;
                 top: 350px;
-                position: absolute;
                 font-size: 10pt;
-                height: 200px;
+                float: left;
             }
 
             #articleSearch {
                 width: 330px;
                 padding: 5px;
                 text-align: left;
-                float: right;
-                position: absolute;
+                float: left;
                 top: 450px;
                 margin: 8px;
             }
@@ -254,12 +253,12 @@
             #disciplineLegend {
                 width: 5%;
                 min-width: 200px;
-                position: absolute;
                 bottom: 10px;
                 left: 10px;
                 font-size: 9pt;
                 padding: 8px 0px 8px 8px;
                 text-align: left;
+                float: left;
             }
 
             #disciplineLegend table {
@@ -271,13 +270,13 @@
             }
             
             #projectHeader {
-                position: absolute;
                 z-index: 10010;
                 left: 10px;
                 top: 10px;
                 height: 200px;
                 padding: 8px;
                 text-align: left;
+                float: left;
             }
 
             #projectHeader #projectTitle {
@@ -329,10 +328,10 @@
                 <p>Search for articles</p>
                 <input id="articleSearchBox"></input>
             </div>
-        </div>
-        <div id="disciplineLegend">
-            <table style="width:100%", id="disciplineLegendTable">
-              </table>
+            <div id="disciplineLegend">
+                <table style="width:100%", id="disciplineLegendTable">
+                  </table>
+            </div>
         </div>
         <div id="articleInfo">
             <button id="closeBtn">
